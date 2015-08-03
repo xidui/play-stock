@@ -36,3 +36,10 @@ class StockCollector:
         if len(self.stocks) != 0:
             return self.stocks
         return self.get_stock_name()
+
+    @staticmethod
+    def get_single_stock(stocks):
+        for stock in stocks:
+            path = 'http://hq.sinajs.cn/list=' + stock
+            r = requests.get(path)
+            yield r.text

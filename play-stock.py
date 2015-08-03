@@ -1,8 +1,8 @@
 from flask import Flask
 from stockCollector import StockCollector
 from period_task import PeriodTask
-import time
 import signal
+from websockets import WebSocketServerProtocol
 
 app = Flask(__name__)
 
@@ -11,7 +11,7 @@ app = Flask(__name__)
 pt = PeriodTask()
 sc = StockCollector()
 pt.regist_task('getStockName', 1, sc.get_stock_name)
-pt.run_task('getStockName')
+# pt.run_task('getStockName')
 
 
 # signal capture
