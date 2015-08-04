@@ -16,6 +16,7 @@ class SocketServer:
     @asyncio.coroutine
     def proceed(self, websocket, path):
         self.sockets.append(websocket)
+        print('a new connection comes, total :', len(self.sockets))
         while True:
             data = yield from websocket.recv()
             if not data:
@@ -27,14 +28,17 @@ class SocketServer:
                     stock_data = stock.split('"')[1].split(',')
                     yield from websocket.send(str(stock_data))
         self.sockets.remove(websocket)
+        print('a connection broken, total :', len(self.sockets))
 
     def start(self):
-        start_server = websockets.serve(self.proceed, '127.0.0.1', 8765)
+        start_server = websockets.serve(self.proceed, '0.0.0.0', 8765)
         print('socket server listen on port 8765')
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         asyncio.get_event_loop().run_until_complete(start_server)
         asyncio.get_event_loop().run_forever()
 
 
-if __name__ == '__main__':
-    socket_svr = SocketServer()
-    socket_svr.start()
+# if __name__ == '__main__':
+    # socket_svr = SocketServer()
+    # socket_svr.start()

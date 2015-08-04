@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>stock</title>
+</head>
+<body>
+    <script>
+        var host = "ws://127.0.0.1:8765/";
+        socket = new WebSocket(host);
+        socket.onopen    = function(msg){
+            socket.send(JSON.stringify({getStock:['sh601006']}));
+            console.log('open');
+        };
+        socket.onmessage = function(msg){
+            // socket.send('hahaha');
+            console.log(msg.data);
+        };
+        socket.onclose   = function(msg){
+            console.log("Lose Connection!");
+        };
+    </script>
+</body>
+</html>
