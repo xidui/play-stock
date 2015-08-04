@@ -2,23 +2,51 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
+    <script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
     <title>stock</title>
 </head>
 <body>
+    <div>
+        <input id="stock_add" type="text">
+        <button onclick="addStock()">添加</button>
+    </div>
+    <div class="stock">
+        <table id="stock_table">
+
+        </table>
+    </div>
     <script>
         var host = "ws://127.0.0.1:8765/";
-        socket = new WebSocket(host);
-        socket.onopen    = function(msg){
-            socket.send(JSON.stringify({getStock:['sh601006']}));
+        var socket = new WebSocket(host);
+        socket.onopen = function(msg){
             console.log('open');
         };
         socket.onmessage = function(msg){
-            // socket.send('hahaha');
-            console.log(msg.data);
+            var data = JSON.parse(msg.data.replace(/\'/g, '"'));
+            for (var key in data){
+                if ($('[data_row='+key+']').length === 0){
+                    $('#stock_table').append('<tr data_row="' + key + '"><td data="key">' + key + '</td><td data="times">' + 0 + '</td><td data="value">' + data[key] + '</td></tr>');
+                }else{
+                    var times = $('[data_row='+key+']').find('[data=times]').html(data[key]);
+                    $('[data_row='+key+']').find('[data=times]').html(parseInt(times) + 1);
+                }
+            }
         };
         socket.onclose   = function(msg){
             console.log("Lose Connection!");
         };
+
+        function addStock(){
+            var stock = $('#stock_add').val();
+            socket.send(JSON.stringify({getStock:[stock]}));
+        }
+
+        setInterval(function (){
+            $('[data=key]').each(function (i, e){
+                socket.send(JSON.stringify({getStock:[this.innerHTML]}));
+            });
+        }, 2000);
+
     </script>
 </body>
 </html>

@@ -24,9 +24,9 @@ class SocketServer:
             data = json.loads(re.compile(r'(?<=[{,])\w+').sub("\"\g<0>\"", data))
             if 'getStock' in data:
                 stocks = data['getStock']
-                for stock in StockCollector.get_single_stock(stocks):
-                    stock_data = stock.split('"')[1].split(',')
-                    yield from websocket.send(str(stock_data))
+                for stock_name, stock_data in StockCollector.get_stocks(stocks):
+                    ret = {stock_name: stock_data.split('"')[1].split(',')}
+                    yield from websocket.send(str(ret))
         self.sockets.remove(websocket)
         print('a connection broken, total :', len(self.sockets))
 

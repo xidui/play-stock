@@ -38,8 +38,8 @@ class StockCollector:
         return self.get_stock_name()
 
     @staticmethod
-    def get_single_stock(stocks):
+    def get_stocks(stocks):
         for stock in stocks:
             path = 'http://hq.sinajs.cn/list=' + stock
             r = requests.get(path)
-            yield r.text
+            yield stock, r.text
