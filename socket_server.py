@@ -3,6 +3,7 @@ import asyncio
 import websockets
 import json
 import re
+from config import get_socket_port
 from stockCollector import *
 from period_task import PeriodTask
 
@@ -44,13 +45,13 @@ class SocketServer:
         for socket in self.sockets:
             for temp in socket.send(str(ret)):
                 # because socket.send is a generator, I have to wrap it in a 'for in'
-                print(123) # why this can not be executed?
+                print(123)  # why this can not be executed?
         print('after callback')
         return
 
     def start(self):
         self.run_stock_collector()
-        start_server = websockets.serve(self.proceed, '0.0.0.0', 8765)
+        start_server = websockets.serve(self.proceed, '0.0.0.0', get_socket_port())
         print('socket server listen on port 8765')
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)

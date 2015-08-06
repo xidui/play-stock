@@ -4,6 +4,7 @@ from socket_server import SocketServer
 import signal
 import threading
 from websockets import WebSocketServerProtocol
+from config import get_web_server_port
 
 app = Flask(__name__)
 # app.debug = True
@@ -33,4 +34,4 @@ def root():
 
 if __name__ == '__main__':
     web_socket_svr()
-    app.run(host='0.0.0.0', port=3001)
+    app.run(host='0.0.0.0', port=get_web_server_port())

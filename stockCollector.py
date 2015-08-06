@@ -10,6 +10,7 @@ class StockCollector:
     stocks = []
     result = {}
     raw_data = ''
+
     def __init__(self):
         self.stocks = []
         self.result = {}
