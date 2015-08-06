@@ -4,10 +4,12 @@ import websockets
 import json
 import re
 from stockCollector import *
+from period_task import PeriodTask
 
 
 class SocketServer:
     sockets = []
+    stock_collector = StockCollector()
 
     def __init__(self):
         self.sockets = []
@@ -21,16 +23,33 @@ class SocketServer:
             data = yield from websocket.recv()
             if not data:
                 break
-            data = json.loads(re.compile(r'(?<=[{,])\w+').sub("\"\g<0>\"", data))
-            if 'getStock' in data:
-                stocks = data['getStock']
-                for stock_name, stock_data in StockCollector.get_stocks(stocks):
-                    ret = {stock_name: stock_data.split('"')[1].split(',')}
-                    yield from websocket.send(str(ret))
+            ret = self.stock_collector.get_calculated_data()
+            yield from websocket.send(str(ret))
+            # data = json.loads(re.compile(r'(?<=[{,])\w+').sub("\"\g<0>\"", data))
+            # if 'fetchData' in data:
+            #     ret = self.stock_collector.get_calculated_data()
+            #     print(ret)
+            #     yield from websocket.send(str(ret))
         self.sockets.remove(websocket)
         print('a connection broken, total :', len(self.sockets))
 
+    def run_stock_collector(self):
+        pt = PeriodTask()
+        pt.regist_task('calUpDown', 3, self.stock_collector.calculate_up_down, self.notify_peer)
+        pt.run_task('calUpDown')
+
+    def notify_peer(self):
+        ret = self.stock_collector.get_calculated_data()
+        print(ret)
+        for socket in self.sockets:
+            for temp in socket.send(str(ret)):
+                # because socket.send is a generator, I have to wrap it in a 'for in'
+                print(123) # why this can not be executed?
+        print('after callback')
+        return
+
     def start(self):
+        self.run_stock_collector()
         start_server = websockets.serve(self.proceed, '0.0.0.0', 8765)
         print('socket server listen on port 8765')
         loop = asyncio.new_event_loop()
@@ -39,6 +58,6 @@ class SocketServer:
         asyncio.get_event_loop().run_forever()
 
 
-# if __name__ == '__main__':
-    # socket_svr = SocketServer()
-    # socket_svr.start()
+if __name__ == '__main__':
+    socket_svr = SocketServer()
+    socket_svr.start()

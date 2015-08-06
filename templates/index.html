@@ -3,50 +3,66 @@
 <head lang="en">
     <meta charset="UTF-8">
     <script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="http://cdn.angularjs.cn/angularjs/1.3.9/angular.min.js"></script>
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <link type="text/css" href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <title>stock</title>
+    <script>
+        var stock = angular.module('stock', []);
+        stock.config(['$interpolateProvider', function($interpolateProvider) {
+            $interpolateProvider.startSymbol('{[');
+            $interpolateProvider.endSymbol(']}');
+        }]);
+        stock.controller('MAIN', ['$scope', '$http', function ($scope, $http){
+            var host = "ws://127.0.0.1:8765/";
+            var socket = new WebSocket(host);
+            socket.onopen = function(msg){
+                console.log('open');
+                socket.send('msg');
+            };
+            socket.onmessage = function(msg){
+                var data = JSON.parse(msg.data.replace(/\'/g, '"'));
+                $scope.data = data;
+                $scope.date = new Date(data.timestamp * 1000);
+                console.log($scope.data);
+                $scope.$apply();
+            };
+            socket.onclose   = function(msg){
+                console.log("Lose Connection!");
+            };
+        }]);
+    </script>
 </head>
-<body>
+<body ng-app="stock" ng-controller="MAIN">
     <div>
-        <input id="stock_add" type="text">
-        <button onclick="addStock()">添加</button>
-    </div>
-    <div class="stock">
-        <table id="stock_table">
-
+        涨停: {[data.upMax.length]}
+        <br>
+        跌停: {[data.downMax.length]}
+        <br>
+        上次更新时间: {[date.getHours()]}时{[date.getMinutes()]}分{[date.getSeconds()]}秒
+        <br>
+        <p>涨停股票:</p>
+        <span ng-repeat="id in data.upMax">{[id]},</span>
+        <p>跌停股票:</p>
+        <span ng-repeat="id in data.downMax">{[id]},</span>
+        <table>
+            <tr>
+                <td>股票代号</td>
+                <td>股票名</td>
+                <td>涨跌幅度</td>
+                <td>开盘价</td>
+                <td>昨天收盘价</td>
+                <td>现价</td>
+            </tr>
+            <tr ng-repeat="(stock,value) in data.computed">
+                <td>{[stock]}</td>
+                <td>{[value[0]]}</td>
+                <td>{[value[1]]}</td>
+                <td>{[value[2]]}</td>
+                <td>{[value[3]]}</td>
+                <td>{[value[4]]}</td>
+            </tr>
         </table>
     </div>
-    <script>
-        var host = "ws://127.0.0.1:8765/";
-        var socket = new WebSocket(host);
-        socket.onopen = function(msg){
-            console.log('open');
-        };
-        socket.onmessage = function(msg){
-            var data = JSON.parse(msg.data.replace(/\'/g, '"'));
-            for (var key in data){
-                if ($('[data_row='+key+']').length === 0){
-                    $('#stock_table').append('<tr data_row="' + key + '"><td data="key">' + key + '</td><td data="times">' + 0 + '</td><td data="value">' + data[key] + '</td></tr>');
-                }else{
-                    var times = $('[data_row='+key+']').find('[data=times]').html(data[key]);
-                    $('[data_row='+key+']').find('[data=times]').html(parseInt(times) + 1);
-                }
-            }
-        };
-        socket.onclose   = function(msg){
-            console.log("Lose Connection!");
-        };
-
-        function addStock(){
-            var stock = $('#stock_add').val();
-            socket.send(JSON.stringify({getStock:[stock]}));
-        }
-
-        setInterval(function (){
-            $('[data=key]').each(function (i, e){
-                socket.send(JSON.stringify({getStock:[this.innerHTML]}));
-            });
-        }, 2000);
-
-    </script>
 </body>
 </html>

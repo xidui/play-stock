@@ -1,6 +1,5 @@
 from flask import Flask, render_template
 from stockCollector import StockCollector
-from period_task import PeriodTask
 from socket_server import SocketServer
 import signal
 import threading
@@ -9,17 +8,9 @@ from websockets import WebSocketServerProtocol
 app = Flask(__name__)
 # app.debug = True
 
-# define period tasks
-pt = PeriodTask()
-sc = StockCollector()
-pt.regist_task('getStockName', 1, sc.get_stock_name)
-# pt.run_task('getStockName')
-
-
 # signal capture
 def onsignal_int(a,b):
-    print('收到SIGTERM信号')
-    pt.stop_all_task()
+    # print('收到SIGTERM信号')
     exit(0)
 signal.signal(signal.SIGINT, onsignal_int)
 
@@ -36,7 +27,7 @@ def web_socket_svr():
     t.start()
 
 @app.route('/')
-def hello_world():
+def root():
     return render_template('index.html')
 
 
