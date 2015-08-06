@@ -30,6 +30,11 @@
             socket.onclose   = function(msg){
                 console.log("Lose Connection!");
             };
+
+            setInterval(function(){
+                $scope.time = new Date();
+                $scope.$apply();
+            }, 1000)
         }]);
     </script>
 </head>
@@ -39,7 +44,9 @@
         <br>
         跌停: {[data.downMax.length]}
         <br>
-        上次更新时间: {[date.getHours()]}时{[date.getMinutes()]}分{[date.getSeconds()]}秒
+        更新时间: {[date.getHours()]}时{[date.getMinutes()]}分{[date.getSeconds()]}秒
+        <br>
+        当前时间: {[time.getHours()]}时{[time.getMinutes()]}分{[time.getSeconds()]}秒
         <br>
         <p>涨停股票:</p>
         <span ng-repeat="id in data.upMax">{[id]},</span>

@@ -9,9 +9,11 @@ import time
 class StockCollector:
     stocks = []
     result = {}
+    raw_data = ''
     def __init__(self):
         self.stocks = []
         self.result = {}
+        self.raw_data = ''
 
     def get_stock_names(self, args=None):
         if len(self.stocks) != 0:
@@ -42,6 +44,22 @@ class StockCollector:
     def get_calculated_data(self):
         return self.result
 
+############################################################################
+    '''
+    第一版工作方式：
+        1.通过get_stock_names获取所有的股票代号
+        2.通过get_stocks一个接一个获取股票当前数据
+        3.每一个都处理完成后做成最后的返回数据回调
+        4.回调函数中通知所有连接的用户
+    缺点:
+        1.同步，所有请求依次执行，等待的时间为2500多个请求之和
+        2.新浪接口是支持一次请求同时获取多个的实测500个没有问题,一次一个的方式效率太低
+    时间:
+        1.每次时间5分钟以上
+    优化点:
+        1.一次请求多个股票数据(200个)
+        2.使用线程池并行加快速度
+    '''
     def calculate_up_down(self, cb=None):
         '''
         {
@@ -99,7 +117,82 @@ class StockCollector:
             r = requests.get(path)
             yield stock, r.text
 
+###############################################################
+    '''
+    第二版工作方式：
+        1.通过get_stock_names获取所有的股票代号
+        2.每次200个股票同时请求，请求14次，依次执行
+        3.合并所有请求的数据并计算
+        4.回调函数中通知所有连接的用户
+    时间:
+        1.每次时间10秒左右
+    优化点:
+        2.使用线程池并行加快速度
+    '''
+    def calculate_up_down_2(self, cb=None):
+        raw_data = self.get_stock_patch()
+        raw_datas = raw_data.split(';')
+        computed = {}
+        upMax = []
+        downMax = []
+        for data in raw_datas:
+            if len(data) < 10:
+                raw_datas.remove(data)
+                continue
+            data = data.replace('_', '=').replace('"', '=').split('=')
+            stock_id = data[2]
+            stock_data = data[4].split(',')
+
+            chinesename = stock_data[0]
+            begin_price = float(stock_data[1])
+            yeste_price = float(stock_data[2])
+            curre_price = float(stock_data[3])
+            change = (curre_price - yeste_price) / yeste_price * 100
+            temp = [
+                chinesename,
+                change,
+                curre_price,
+                begin_price,
+                yeste_price
+            ]
+            computed[stock_id] = temp
+            if change >= 9.99:
+                upMax.append(stock_id)
+            elif change <= -9.99:
+                downMax.append(stock_id)
+        ret = {}
+        ret['computed'] = computed
+        ret['upMax'] = upMax
+        ret['downMax'] = downMax
+        ret['timestamp'] = time.time()
+        self.result = ret
+        if cb is not None:
+            cb()
+        return ret
+
+    def cal_one_stock(self, id, data):
+        return
+
+    def get_stock_patch(self):
+        self.raw_data = ''
+        path = 'http://hq.sinajs.cn/list='
+        str = ''
+        c = 0
+        for i in self.get_stock_names():
+            c = c + 1
+            str += i
+            str += ','
+            if c < 200:
+                continue
+            r = requests.get(path + str)
+            self.raw_data += r.text
+            c = 0
+            str = ''
+        r = requests.get(path + str)
+        self.raw_data += r.text
+        return self.raw_data
+
+
 if __name__ == '__main__':
     sc = StockCollector()
-    for i in sc.get_stock_names():
-        print(i)
+    sc.calculate_up_down_2()
