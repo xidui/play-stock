@@ -36,7 +36,7 @@ class SocketServer:
 
     def run_stock_collector(self):
         pt = PeriodTask()
-        pt.regist_task('calUpDown', 5, self.stock_collector.calculate_up_down_2, self.notify_peer)
+        pt.regist_task('calUpDown', 5, self.stock_collector.calculate_up_down_2)
         pt.run_task('calUpDown')
 
     def notify_peer(self):

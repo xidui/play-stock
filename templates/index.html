@@ -30,6 +30,9 @@
             socket.onclose   = function(msg){
                 console.log("Lose Connection!");
             };
+            setInterval(function (){
+                socket.send('msg');
+            }, 10000);
 
             setInterval(function(){
                 $scope.time = new Date();
