@@ -4,6 +4,7 @@ import requests
 import json
 import re
 import time
+from ThreadPool import ThreadPool
 
 
 class StockCollector:
@@ -136,6 +137,7 @@ class StockCollector:
         computed = {}
         upMax = []
         downMax = []
+        stop = []
         for data in raw_datas:
             if len(data) < 10:
                 raw_datas.remove(data)
@@ -152,12 +154,14 @@ class StockCollector:
             temp = [
                 chinesename,
                 change,
-                curre_price,
                 begin_price,
-                yeste_price
+                yeste_price,
+                curre_price
             ]
             computed[stock_id] = temp
-            if change >= 9.99:
+            if curre_price == 0:
+                stop.append(stock_id)
+            elif change >= 9.99:
                 upMax.append(stock_id)
             elif change <= -9.99:
                 downMax.append(stock_id)
@@ -165,6 +169,7 @@ class StockCollector:
         ret['computed'] = computed
         ret['upMax'] = upMax
         ret['downMax'] = downMax
+        ret['stop'] = stop
         ret['timestamp'] = time.time()
         self.result = ret
         if cb is not None:
@@ -174,8 +179,18 @@ class StockCollector:
     def cal_one_stock(self, id, data):
         return
 
+    def thread_task(self, path):
+        r = requests.get(str(path))
+        return r.text
+
+    def thread_task_cb(self, result):
+        self.raw_data += result
+        return
+
     def get_stock_patch(self):
+        print('get_stock_patch')
         self.raw_data = ''
+        tp = ThreadPool(10)
         path = 'http://hq.sinajs.cn/list='
         str = ''
         c = 0
@@ -185,12 +200,13 @@ class StockCollector:
             str += ','
             if c < 200:
                 continue
-            r = requests.get(path + str)
-            self.raw_data += r.text
-            c = 0
+            tp.add_worker(self.thread_task, path + str, self.thread_task_cb)
             str = ''
-        r = requests.get(path + str)
-        self.raw_data += r.text
+            c = 0
+        if len(str) > 0:
+            tp.add_worker(self.thread_task, path + str, self.thread_task_cb)
+        tp.pool_start()
+        tp.pool_join()
         return self.raw_data
 
 
