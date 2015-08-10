@@ -176,10 +176,8 @@ class StockCollector:
             cb()
         return ret
 
-    def cal_one_stock(self, id, data):
-        return
-
-    def thread_task(self, path):
+    @staticmethod
+    def thread_task(path):
         r = requests.get(str(path))
         return r.text
 
@@ -188,6 +186,10 @@ class StockCollector:
         return
 
     def get_stock_patch(self):
+        if len(self.result) > 0:
+            now = time.localtime()
+            if now.tm_hour < 9 or now.tm_hour > 15:
+                return
         print('get_stock_patch')
         self.raw_data = ''
         tp = ThreadPool(10)
