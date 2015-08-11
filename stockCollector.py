@@ -138,6 +138,8 @@ class StockCollector:
         upMax = []
         downMax = []
         stop = []
+        up = []
+        down = []
         for data in raw_datas:
             if len(data) < 10:
                 raw_datas.remove(data)
@@ -161,15 +163,22 @@ class StockCollector:
             computed[stock_id] = temp
             if curre_price == 0:
                 stop.append(stock_id)
-            elif change >= 9.99:
-                upMax.append(stock_id)
-            elif change <= -9.99:
-                downMax.append(stock_id)
+            else:
+                if change > 0:
+                    up.append(stock_id)
+                    if change > 9.99:
+                        upMax.append(stock_id)
+                elif change < 0:
+                    down.append(stock_id)
+                    if change < -9.99:
+                        downMax.append(stock_id)
         ret = {}
         ret['computed'] = computed
         ret['upMax'] = upMax
         ret['downMax'] = downMax
         ret['stop'] = stop
+        ret['down'] = down
+        ret['up'] = up
         ret['timestamp'] = time.time()
         self.result = ret
         if cb is not None:
@@ -188,7 +197,7 @@ class StockCollector:
     def get_stock_patch(self):
         if len(self.result) > 0:
             now = time.localtime()
-            if now.tm_hour < 9 or now.tm_hour > 15:
+            if now.tm_hour < 9 or (now.tm_hour > 15 and now.tm_min > 5):
                 return
         print('get_stock_patch')
         self.raw_data = ''
