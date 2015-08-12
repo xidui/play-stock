@@ -52,7 +52,7 @@ class SocketServer:
     def start(self):
         self.run_stock_collector()
         start_server = websockets.serve(self.proceed, '0.0.0.0', get_socket_port())
-        print('socket server listen on port 8765')
+        print('socket server listen on port: ' + get_socket_port())
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         asyncio.get_event_loop().run_until_complete(start_server)
