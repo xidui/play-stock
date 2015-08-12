@@ -198,7 +198,7 @@ class StockCollector:
         if len(self.result) > 0:
             now = time.localtime()
             if now.tm_hour < 9 or (now.tm_hour > 15 and now.tm_min > 5):
-                return
+                return self.raw_data
         print('get_stock_patch')
         self.raw_data = ''
         tp = ThreadPool(10)
@@ -218,6 +218,7 @@ class StockCollector:
             tp.add_worker(self.thread_task, path + str, self.thread_task_cb)
         tp.pool_start()
         tp.pool_join()
+        print('get_stock_patch_done')
         return self.raw_data
 
 

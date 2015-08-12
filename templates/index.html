@@ -14,7 +14,7 @@
             $interpolateProvider.endSymbol(']}');
         }]);
         stock.controller('MAIN', ['$scope', '$http', function ($scope, $http){
-            var host = "ws://133.130.54.38:8765/";
+            var host = "ws://163.44.138.194:8765/";
             var socket = new WebSocket(host);
             socket.onopen = function(msg){
                 console.log('open');
