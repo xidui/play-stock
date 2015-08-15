@@ -132,6 +132,21 @@ class StockCollector:
         2.使用线程池并行加快速度
     '''
     def calculate_up_down_2(self, cb=None):
+        '''
+        {
+            timestamp: xxxx,
+            buy_total: buy_total,
+            sell_total: sell_total,
+            upMax : ['sh000001', 'sh000002'],
+            downMax : ['sh000003', 'sh000004'],
+            stop: ['shxxxxxx', 'shxxxxxx'],
+            computed : {
+                'sh000001' : [股票中文名, 涨跌幅, 开盘价, 昨天价, 现价],
+                'sh000002' : [股票中文名, 涨跌幅, 开盘价, 昨天价, 现价],
+                'sh000003' : [股票中文名, 涨跌幅, 开盘价, 昨天价, 现价]
+            }
+        }
+        '''
         raw_data = self.get_stock_patch()
         raw_datas = raw_data.split(';')
         computed = {}
@@ -140,6 +155,10 @@ class StockCollector:
         stop = []
         up = []
         down = []
+
+        buy_total = 0
+        sell_total = 0
+
         for data in raw_datas:
             if len(data) < 10:
                 raw_datas.remove(data)
@@ -153,6 +172,7 @@ class StockCollector:
             yeste_price = float(stock_data[2])
             curre_price = float(stock_data[3])
             change = (curre_price - yeste_price) / yeste_price * 100
+
             temp = [
                 chinesename,
                 change,
@@ -172,6 +192,14 @@ class StockCollector:
                     down.append(stock_id)
                     if change < -9.99:
                         downMax.append(stock_id)
+                buy_total += int(stock_data[10]) / 100
+                buy_total += int(stock_data[12]) / 100
+                buy_total += int(stock_data[14]) / 100
+
+                sell_total += int(stock_data[20]) / 100
+                sell_total += int(stock_data[22]) / 100
+                sell_total += int(stock_data[24]) / 100
+
         ret = {}
         ret['computed'] = computed
         ret['upMax'] = upMax
@@ -180,6 +208,8 @@ class StockCollector:
         ret['down'] = down
         ret['up'] = up
         ret['timestamp'] = time.time()
+        ret['buy_total'] = buy_total
+        ret['sell_total'] = sell_total
         self.result = ret
         if cb is not None:
             cb()

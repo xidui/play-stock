@@ -53,6 +53,8 @@
         <br>
         停牌: {[data.stop.length]}
         <br>
+        大盘委比: {[(data.buy_total - data.sell_total) / (data.buy_total + data.sell_total) * 100]}
+        <br>
         更新时间: {[date.getHours()]}时{[date.getMinutes()]}分{[date.getSeconds()]}秒
         <br>
         当前时间: {[time.getHours()]}时{[time.getMinutes()]}分{[time.getSeconds()]}秒
