@@ -201,7 +201,7 @@ class StockCollector:
                 sell_total += int(stock_data[24]) / 100
 
         ret = {}
-        ret['computed'] = computed
+        # ret['computed'] = computed
         ret['upMax'] = upMax
         ret['downMax'] = downMax
         ret['stop'] = stop
