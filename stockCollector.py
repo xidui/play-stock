@@ -216,6 +216,23 @@ class StockCollector:
         return ret
 
     @staticmethod
+    def is_in_business_time(timestamp):
+        try:
+            current_time = time.strftime('%H:%M:%S', time.gmtime(timestamp))
+            current_time = time.strptime(current_time, '%H:%M:%S')
+            start_time_morning = time.strptime('01:30:00', "%H:%M:%S")
+            end_time_morning = time.strptime('03:30:00', "%H:%M:%S")
+            start_time_afternoon = time.strptime('5:00:00', "%H:%M:%S")
+            end_time_afternoon = time.strptime('7:00:00', "%H:%M:%S")
+            if current_time >= start_time_morning and current_time <= end_time_morning:
+                return True
+            if current_time >= start_time_afternoon and current_time <= end_time_afternoon:
+                return True
+            return False
+        except Exception as err:
+            return True
+
+    @staticmethod
     def thread_task(path):
         r = requests.get(str(path))
         return r.text
@@ -226,8 +243,7 @@ class StockCollector:
 
     def get_stock_patch(self):
         if len(self.result) > 0:
-            now = time.localtime()
-            if now.tm_hour < 9 or (now.tm_hour > 15 and now.tm_min > 5):
+            if not self.is_in_business_time(time.time()):
                 return self.raw_data
         print('get_stock_patch')
         self.raw_data = ''
