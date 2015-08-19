@@ -132,6 +132,9 @@ class StockCollector:
         2.使用线程池并行加快速度
     '''
     def calculate_up_down_2(self, cb=None):
+        if len(self.result) > 0:
+            if not self.is_in_business_time(time.time()):
+                return self.result
         '''
         {
             timestamp: xxxx,
@@ -242,9 +245,6 @@ class StockCollector:
         return
 
     def get_stock_patch(self):
-        if len(self.result) > 0:
-            if not self.is_in_business_time(time.time()):
-                return self.raw_data
         print('get_stock_patch')
         self.raw_data = ''
         tp = ThreadPool(10)
