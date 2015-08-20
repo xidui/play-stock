@@ -11,3 +11,7 @@ def get_web_server_port():
 
 def get_socket_port():
     return 6002
+
+def get_mongo_url():
+    YOUR_MONGO_URL = ''
+    return YOUR_MONGO_URL
